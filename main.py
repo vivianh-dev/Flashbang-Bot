@@ -9,21 +9,31 @@ from discord import Option
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
-DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
-TESTING_SERVERS = [1170901789902639193]
 
-bot = discord.Bot()
+# Load bot token
+DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+
+# Load server IDs
+SERVERS = [1170901789902639193, 1084252257777889280]
+
+# Load user IDs
 SELINA_ID = 644277562461257730
 VIVIAN_ID = 5925034051220275203
+
+# Create bot
+bot = discord.Bot()
 bot.owner_ids = [SELINA_ID, VIVIAN_ID]
 
-@bot.command(guild_ids=TESTING_SERVERS, description='Sends the bot\'s latency.') # this decorator makes a slash command
-async def ping(ctx): # a slash command will be created with the name "ping"
+
+@bot.command(guild_ids=SERVERS, description='Sends the bot\'s latency.') # this decorator makes a slash command
+async def ping(ctx):
+    '''Returns the bot's latency.'''
     await ctx.respond(f'Pong! Latency is {int(1000 * bot.latency)}ms.')
 
 @commands.is_owner()
-@bot.command(guild_ids=TESTING_SERVERS)
+@bot.command(guild_ids=SERVERS)
 async def create_flashbang_role(ctx):
     guild = ctx.guild
 
@@ -43,7 +53,7 @@ async def create_flashbang_role(ctx):
 
     await ctx.respond('The flashbang role has been created.')
 
-@bot.command(guild_ids=TESTING_SERVERS, description='Flashbangs the user for the specified amount of time, in seconds.')
+@bot.command(guild_ids=SERVERS, description='Flashbangs the user for the specified amount of time, in seconds.')
 async def flashbang(ctx, time: Option(int)):
     guild = ctx.guild
     unix_timestamp = datetime.datetime.now(datetime.timezone.utc).timestamp()
@@ -69,12 +79,12 @@ async def flashbang(ctx, time: Option(int)):
     confirmed = await confirm(ctx, confirmation_message)
 
     if confirmed:
-        with open('flashbangs.json', 'r') as f:
+        with open('flashbangs.json', 'r', encoding='utf-8') as f:
             flashbangs = json.load(f)
 
         flashbangs[ctx.author.id] = {'Time': unix_timestamp + time, 'Guild': guild.id, 'Admins': admin_roles}
 
-        with open('flashbangs.json', 'w') as f:
+        with open('flashbangs.json', 'w', encoding='utf-8') as f:
             json.dump(flashbangs, f)
 
         await ctx.author.add_roles(flasbang_role)
@@ -155,4 +165,3 @@ async def on_ready():
     print('------')
 
 bot.run(DISCORD_BOT_TOKEN)
-
